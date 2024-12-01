@@ -1,0 +1,5 @@
+-r requirements.txt
+
+setuptools~=75.6.0
+pytest~=8.3.3
+pytest-mock~=3.14.0
