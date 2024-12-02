@@ -1,10 +1,18 @@
+import os
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from src.common.tables import Base
 
-DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:5432/trustpilot"
-engine = create_engine(DATABASE_URL, pool_size=10, max_overflow=20)
+PGUSER = os.getenv("PGUSER")
+PGPASSWORD = os.getenv("PGPASSWORD")
+PGHOST = os.getenv("PGHOST")
+PGPORT = os.getenv("PGPORT")
+PGDATABASE = os.getenv("PGDATABASE")
+
+_REVIEWS_SQL_URL = f"postgresql://{PGUSER}:{PGPASSWORD}@{PGHOST}:{PGPORT}/{PGDATABASE}"
+_POSTGRES_SQL_URL = f"postgresql://{PGUSER}:{PGPASSWORD}@{PGHOST}:{PGPORT}/postgres"
+engine = create_engine(_REVIEWS_SQL_URL, pool_size=10, max_overflow=20)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
@@ -25,11 +33,11 @@ def get_db_connection() -> SessionLocal:
 
 def create_database():
     """Create the database if it doesn't exist"""
-    pg_engine = create_engine("postgresql://postgres:postgres@127.0.0.1:5432/postgres", isolation_level="AUTOCOMMIT")
+    pg_engine = create_engine(_POSTGRES_SQL_URL, isolation_level="AUTOCOMMIT")
     with pg_engine.connect() as conn:
-        result = conn.execute(text("SELECT 1 FROM pg_database WHERE datname='trustpilot'"))
+        result = conn.execute(text(f"SELECT 1 FROM pg_database WHERE datname='{PGDATABASE}'"))
         if not result.scalar():
-            conn.execute(text("CREATE DATABASE IF NOT EXISTS trustpilot"))
+            conn.execute(text(f"CREATE DATABASE {PGDATABASE}"))
 
 def create_tables():
     """Create all the tables if they don't exist"""

@@ -1,7 +1,9 @@
+import os
+
+import uvicorn
 from fastapi import FastAPI, HTTPException, Query, Depends
 from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
-from importlib.metadata import metadata
 
 from src.common.db import get_db, ensure_db_ready
 from src.common.tables import Review as DbReview
@@ -71,3 +73,7 @@ async def reviews(records: int = Query(10, ge=1, le=25), page: int = Query(1, ge
     offset = (page - 1) * records
     result = db.query(DbReview).limit(limit).offset(offset).all()
     return {"data": result}
+
+if __name__ == "__main__":
+    port = int(os.getenv("HTTP_SERVER_PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

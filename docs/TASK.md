@@ -3,7 +3,7 @@
 ## Overview
 
 The focus of this take home is around ingesting a CSV file which contains a mock example of a
-Trustpilot Review dataset. The goal is loading the data into a database (of your choice) to be
+Review dataset. The goal is loading the data into a database (of your choice) to be
 used downstream by the rest of the business via an API. Requirements:
 1. Ingest the Reviews CSV file provided into a table in a database.
 2. Programmatically clean up the data if needed.

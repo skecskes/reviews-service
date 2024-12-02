@@ -9,11 +9,16 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: trustpilot
+      POSTGRES_DB: reviews
     volumes:
       - /home/stefan/Projects/DockerVolumes:/var/lib/postgresql/data/
     networks:
       - tp-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   api:
     container_name: tp-api
     build:
@@ -22,14 +27,14 @@ services:
         - --progress=plain
     environment:
       - HTTP_SERVER_PORT=8000
-      - PGHOST=tp-pg
+      - PGHOST=db
       - PGUSER=postgres
       - PGPASSWORD=postgres
       - PGPORT=5432
-      - PGDATABASE=trustpilot
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/trustpilot
+      - PGDATABASE=reviews
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "8000:8000"
     expose:
