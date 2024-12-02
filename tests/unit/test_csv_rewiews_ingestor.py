@@ -92,17 +92,33 @@ class TestCsvReviewsIngestor:
         )
 
     @patch('src.common.csv_reviews_ingestor.SessionLocal')
-    def test_write_data(self, db_session):
+    def test_write_data_with_df(self, db_session):
         # Arrange
         csv_reviews_ingestor = CsvReviews("tests/unit/test_reviews.csv", db_session)
         df = MagicMock(spec=DataFrame)
+        df.is_empty.return_value = False
 
         # Act
         csv_reviews_ingestor._write_data(df)
 
         # Assert
+        # asser not called
         df.write_database.assert_called_once()
         db_session.mock_calls[1][0] == "__enter__().commit"
+
+    @patch('src.common.csv_reviews_ingestor.SessionLocal')
+    def test_write_data_empty_df(self, db_session):
+        # Arrange
+        csv_reviews_ingestor = CsvReviews("tests/unit/test_reviews.csv", db_session)
+        df = MagicMock(spec=DataFrame)
+        df.is_empty.return_value = True
+
+        # Act
+        csv_reviews_ingestor._write_data(df)
+
+        # Assert
+        df.write_database.assert_not_called()
+        db_session.commit.assert_not_called()
 
     @pytest.mark.parametrize("email", [
         ("invalid_email", False),
