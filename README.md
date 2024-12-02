@@ -33,7 +33,7 @@ You can now access API at: http://127.0.0.1:8000
 Run the ETL pipeline
 
     ```bash
-    python src/ingestion/etl.py
+    python src/ingestion/etl.py src/raw_layer/dataops_tp_reviews.csv
     ```
 
 

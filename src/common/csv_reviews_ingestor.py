@@ -97,11 +97,25 @@ class CsvReviews(IngestorInterface):
         """Write DataFrame to the database"""
         try:
             with self._db as db:
-                df.write_database(table_name=Review.__tablename__, connection=db, engine="sqlalchemy",
-                                  if_table_exists="append")
-                db.commit()
-                logger.info("Data successfully written to the database", date=datetime.datetime.now().isoformat(),
-                            seed=self._seed)
+
+                # join with existing reviews from SQL, to not write duplicates
+                result = db.query(Review).all()
+                if len(result) > 0:
+                    existing_reviews_df = pl.DataFrame([review.__dict__ for review in result])
+                    df = df.join(
+                        existing_reviews_df,
+                        on=["reviewer_name", "review_title", "review_rating", "review_content", "email_address", "review_date"],
+                        how="anti"
+                    )
+
+                if not df.is_empty():
+                    df.write_database(table_name=Review.__tablename__, connection=db, engine="sqlalchemy",
+                                      if_table_exists="append")
+                    db.commit()
+                    logger.info("Data successfully written to the database", date=datetime.datetime.now().isoformat(),
+                                seed=self._seed, num_rows=len(df))
+                else:
+                    logger.info("No new data to write to the database", seed=self._seed)
         except SQLAlchemyError as e:
             logger.error("SQLAlchemy error writing to the database", error=str(e), seed=self._seed)
 
